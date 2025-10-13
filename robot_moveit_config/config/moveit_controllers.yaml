@@ -4,14 +4,15 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 
 moveit_simple_controller_manager:
   controller_names:
-    - robot_arm_controller
+    - arm_controller
 
-  robot_arm_controller:
+  arm_controller:
     type: FollowJointTrajectory
     joints:
       - Revolute1
       - Revolute2
       - Revolute3
       - Revolute4
+      - Revolute5
     action_ns: follow_joint_trajectory
     default: true
