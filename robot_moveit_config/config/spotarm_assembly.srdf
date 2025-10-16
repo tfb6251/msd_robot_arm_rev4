@@ -39,7 +39,7 @@
     <group_state name="home" group="arm">
         <joint name="Revolute1" value="2.1281"/>
         <joint name="Revolute2" value="0"/>
-        <joint name="Revolute3" value="0"/>
+        <joint name="Revolute3" value="1.5708"/>
         <joint name="Revolute4" value="0"/>
         <joint name="Revolute5" value="0"/>
         <joint name="Revolute6" value="0"/>
