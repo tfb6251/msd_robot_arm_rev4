@@ -221,3 +221,27 @@ int ICLStepper::configure_io_for_homing() {
 
     return 0;
 }
+
+int ICLStepper::read_position() {
+    modbus_set_slave(ctx_, slave_id_);
+    usleep(delay_us_);
+
+    uint16_t pos_high;
+    uint16_t pos_low;
+
+    if (modbus_read_registers(ctx_, 0x602C, 1, &pos_high) == -1) {
+        std::cerr << "[Slave " << slave_id_ << "] Failed to read position high bits: "
+                  << modbus_strerror(errno) << std::endl;
+        return -1;
+    }
+    usleep(delay_us_);
+
+    if (modbus_read_registers(ctx_, 0x602D, 1, &pos_low) == -1) {
+        std::cerr << "[Slave " << slave_id_ << "] Failed to read position low bits: "
+                  << modbus_strerror(errno) << std::endl;
+        return -1;
+    }
+    usleep(delay_us_);
+
+    return (static_cast<int>(pos_high) << 16) | static_cast<int>(pos_low);
+}

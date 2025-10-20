@@ -17,7 +17,7 @@ public:
     uint16_t read_motion_status();
     int home(int position_after_homing = 0);
     int configure_io_for_homing();
-
+    int ICLStepper::read_position();
 private:
     int slave_id_;
     modbus_t* ctx_;
