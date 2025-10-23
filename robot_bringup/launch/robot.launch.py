@@ -76,6 +76,23 @@ def generate_launch_description():
         output='screen'
     )
 
+    led_state_node = Node(
+        package='robot_status_leds',
+        executable='led_state_node',
+        name='led_state_node',
+        output='screen',
+        parameters=[{
+            'led_backend': 'rpi_neopixel',
+            'led_count': 120,
+            'led_pin': 18,
+            'brightness': 0.5,
+            'static_color': '#00FF00',
+            'moving_color': '#FF0000',
+            'velocity_threshold': 0.01,
+            'moving_timeout_ms': 500,
+        }]
+    )
+
     move_group_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -94,5 +111,6 @@ def generate_launch_description():
         controller_manager_node,
         controller_manager_spawner_jsb_node,
         controller_manager_spawner_arm_controller_node,
-        rviz_node
+        rviz_node, 
+        led_state_node
     ])
