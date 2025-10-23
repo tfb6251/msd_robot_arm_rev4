@@ -11,7 +11,7 @@ class LEDStateNode(Node):
 
         # Parameters (defaults tuned for RPi NeoPixel)
         self.declare_parameter('led_backend', 'rpi_neopixel')   # 'rpi_neopixel' or 'mock'
-        self.declare_parameter('led_count', 30)
+        self.declare_parameter('led_count', 120)                 # number of LEDs
         self.declare_parameter('led_pin', 18)                  # GPIO number (e.g., 18 -> board.D18)
         self.declare_parameter('brightness', 0.5)              # 0.0 .. 1.0
         self.declare_parameter('static_color', '#00FF00')
