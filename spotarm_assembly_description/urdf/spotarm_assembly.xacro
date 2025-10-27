@@ -188,11 +188,12 @@
 </link>
 
 
-<joint name="Revolute1" type="continuous">
+<joint name="Revolute1" type="revolute">
   <origin xyz="0.02835 -0.011972 0.033179" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="link_2"/>
   <axis xyz="-0.0 0.0 1.0"/>
+  <limit lower="-0.436" upper="2.13" effort="30.0" velocity="1.0"/>
 </joint>
 
 <joint name="Revolute2" type="continuous">
