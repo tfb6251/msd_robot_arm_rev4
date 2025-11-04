@@ -1,6 +1,6 @@
 # spotarm_assembly_description
 
-This is a ROS 2 Humble package providing the description files (URDF, meshes, etc.) for the Spot Arm assembly.
+This is a ROS 2 Humble package providing the description files (URDF, meshes, etc.) for the Spot Arm assembly. Created using this branch of an existing Fusion to URDF conversion tool: (https://github.com/siddarth09/fusion2urdf-ros2/tree/patch-1)
 
 ## Package Overview
 
