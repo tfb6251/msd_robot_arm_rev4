@@ -3,6 +3,8 @@
 This is a simple ROS 2 package for controlling a robotic arm with a gamepad.  
 Compatible with ROS 2 Humble.
 
+NOTE: Gamepad functionality still does not work on arm hardware, only in simulation. We believe this issue has to do with the ros2_control Controller Manager configuration. After countless hours of troubleshooting we were unable to fix the issue before delivery date. 
+
 ## Overview
 
 The `robot_servoing` package provides nodes and modules to facilitate servoing and basic manipulation tasks for a robot arm using ROS 2. This package is designed to be easy to use and integrate with other ROS 2 projects.
@@ -36,15 +38,14 @@ The `robot_servoing` package provides nodes and modules to facilitate servoing a
    ```bash
    source ~/ros2_ws/install/setup.bash
    source /opt/ros/humble/setup.bash
+   source <your_moveit_ws>/install/setup.bash
    ```
 
 2. Launch or run the package's nodes directly. For example:
 
    ```bash
-   ros2 run robot_servoing <node_name>
+   ros2 launch robot_servoing servo2.launch.py
    ```
-
-   Replace `<node_name>` with the specific node you want to launch.
 
 ## Package Structure
 
