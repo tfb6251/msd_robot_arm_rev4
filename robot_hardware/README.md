@@ -20,14 +20,7 @@ cd ~/ros2_ws
 colcon build --packages-select robot_hardware
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-```
-
-## Usage
-
-Launch the hardware interface node:
-
-```sh
-ros2 launch robot_hardware robot_hardware.launch.py
+source <your_moveit_ws>/install/setup.bash
 ```
 
 Modify configuration files in the `config/` and `launch/` folders as needed for your setup.
