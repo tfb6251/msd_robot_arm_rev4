@@ -3,6 +3,8 @@
 ROS2 Humble package to set Adafruit NeoPixel (WS281x) LED strips to configured colors
 based on whether the robot is moving or static.
 
+NOTE: Package was left mostly untested due to time constraints.
+
 ## Installation (Raspberry Pi 4)
 1. System prerequisites (on Raspberry Pi OS):
    - Update and install python3-pip:
