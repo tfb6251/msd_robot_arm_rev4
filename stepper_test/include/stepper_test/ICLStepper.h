@@ -6,7 +6,7 @@
 
 class ICLStepper {
 public:
-    ICLStepper(int slave_id, modbus_t* ctx, int pulses_per_revolution = 10000, int gear_ratio = 100);
+    ICLStepper(int worker_id, modbus_t* ctx, int pulses_per_revolution = 10000, int gear_ratio = 100);
     int initialize();
     int disable_motor();
     int32_t read_position();
@@ -15,14 +15,14 @@ public:
     int set_position(int target_position, int velocity_rpm, int acceleration, int deceleration);
     int jog(bool clockwise = true);
     int set_jog_velocity(int velocity_rpm);
-    int set_slave_id(int slave_id);
+    int set_worker_id(int worker_id);
     int set_jog_acceleration(int acc);
     uint16_t read_motion_status();
     int home(double home_switch_position = 0.0, double position_after_homing_radians = 0.0, bool clockwise = true, double radians_per_second = 0.5);
     int configure_io_for_homing();
     int set_as_home();
 private:
-    int slave_id_;
+    int worker_id_;
     modbus_t* ctx_;
     int current_position_;
     int delay_us_;
