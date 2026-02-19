@@ -30,7 +30,7 @@ struct RawTerm {
 
 int main() {
     std::cout << R"(Stepper control ready.
-Digits [0-9]: select motor worker ID.
+Digits [0-9]: select motor slave ID.
 Arrow keys: toggle jogging (left/right) and adjust speed ±100 (up/down).
 Keys [a-;]: apply preset jog velocities (low to high).
 Keys [z-m]: move to preset absolute positions.
@@ -47,7 +47,7 @@ Press 'q' or Esc to quit.
     for (auto& kv : key_velocity_map) {
         kv.second *= 2;
     }
-    int motor_worker_id = 1;
+    int motor_slave_id = 1;
     int target_velocity = 100;
     bool jogging = false;
     bool clockwise = true;
@@ -64,7 +64,7 @@ Press 'q' or Esc to quit.
         return -1;
     }
     usleep(10'000);  // Wait 10 ms
-    ICLStepper stepper(motor_worker_id, ctx, 10000, 100);
+    ICLStepper stepper(motor_slave_id, ctx, 10000, 100);
     stepper.initialize();
     stepper.set_jog_velocity(target_velocity);
     stepper.set_jog_acceleration(4000);
@@ -83,9 +83,9 @@ Press 'q' or Esc to quit.
 
                 if (std::isdigit(ch)) {
                     std::cout << "Digit pressed: " << static_cast<char>(ch) << "\n";
-                    motor_worker_id = ch - '0';
-                    std::cout << "Selected motor worker ID: " << motor_worker_id << "\n";
-                    stepper.set_worker_id(motor_worker_id);
+                    motor_slave_id = ch - '0';
+                    std::cout << "Selected motor slave ID: " << motor_slave_id << "\n";
+                    stepper.set_slave_id(motor_slave_id);
                     stepper.set_jog_velocity(target_velocity);
                     stepper.set_jog_acceleration(4000);
                 }

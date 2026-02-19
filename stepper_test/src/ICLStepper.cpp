@@ -6,20 +6,20 @@
 #include <modbus/modbus.h>
 #include <cmath>
 
-ICLStepper::ICLStepper(int worker_id, modbus_t* ctx, int pulses_per_revolution, int gear_ratio)
-    : worker_id_(worker_id),
+ICLStepper::ICLStepper(int slave_id, modbus_t* ctx, int pulses_per_revolution, int gear_ratio)
+    : slave_id_(slave_id),
       ctx_(ctx),
       pulses_per_revolution_(pulses_per_revolution),
       gear_ratio_(gear_ratio),
       delay_us_(10) {}
 
 int ICLStepper::initialize() {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // Enable motor
     if (modbus_write_register(ctx_, 0x000F, 1) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to enable motor: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to enable motor: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -29,12 +29,12 @@ int ICLStepper::initialize() {
 }
 
 int ICLStepper::disable_motor() {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // Disable motor
     if (modbus_write_register(ctx_, 0x000F, 0) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to disable motor: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to disable motor: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -44,7 +44,7 @@ int ICLStepper::disable_motor() {
 }
 
 int ICLStepper::set_position(int position, int velocity_rpm, int acc, int dec) {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // 1) Prepare PR0 configuration block
@@ -59,7 +59,7 @@ int ICLStepper::set_position(int position, int velocity_rpm, int acc, int dec) {
         static_cast<uint16_t>(dec)
     };
     if (modbus_write_registers(ctx_, 0x6200, sizeof(pr0_registers) / sizeof(pr0_registers[0]), pr0_registers) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to configure PR0 registers: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to configure PR0 registers: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -68,7 +68,7 @@ int ICLStepper::set_position(int position, int velocity_rpm, int acc, int dec) {
 
     // Trigger PR0 motion
     if (modbus_write_register(ctx_, 0x6002, 0x0010) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to trigger PR0 motion: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to trigger PR0 motion: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -85,21 +85,21 @@ int ICLStepper::set_position_radians(double position_radians, double radians_per
 }
 
 int32_t ICLStepper::read_position() {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     uint16_t pos_high;
     uint16_t pos_low;
 
     if (modbus_read_registers(ctx_, 0x602C, 1, &pos_high) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to read position high bits: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to read position high bits: "
                   << modbus_strerror(errno) << std::endl;
         return INT32_MIN;
     }
     usleep(delay_us_);
 
     if (modbus_read_registers(ctx_, 0x602D, 1, &pos_low) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to read position low bits: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to read position low bits: "
                   << modbus_strerror(errno) << std::endl;
         return INT32_MIN;
     }
@@ -119,11 +119,11 @@ double ICLStepper::get_position_radians(){
 }
 
 int ICLStepper::jog(bool clockwise) {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
     int command = clockwise ? 0x4001 : 0x4002;
     if (modbus_write_register(ctx_, 0x1801, command) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to jog motor: " << modbus_strerror(errno) << std::endl;
+        std::cerr << "[Slave " << slave_id_ << "] Failed to jog motor: " << modbus_strerror(errno) << std::endl;
         return -1;
     }
     // Wait delay_us microseconds
@@ -133,12 +133,12 @@ int ICLStepper::jog(bool clockwise) {
 }
 
 int ICLStepper::set_jog_acceleration(int acc) {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // set jog acceleration/deceleration
     if (modbus_write_register(ctx_, 0x01E7, acc) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to set jog acc/dec: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to set jog acc/dec: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -148,10 +148,10 @@ int ICLStepper::set_jog_acceleration(int acc) {
 }
 
 int ICLStepper::set_jog_velocity(int velocity_rpm) {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
     if (modbus_write_register(ctx_, 0x01E1, velocity_rpm) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to set target jog velocity: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to set target jog velocity: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -159,9 +159,9 @@ int ICLStepper::set_jog_velocity(int velocity_rpm) {
     return 0;
 }
 
-int ICLStepper::set_worker_id(int worker_id) {
-    worker_id_ = worker_id;
-    modbus_set_worker(ctx_, worker_id_);
+int ICLStepper::set_slave_id(int slave_id) {
+    slave_id_ = slave_id;
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
     return 0;
 }
@@ -177,7 +177,7 @@ bit6: Homing Completed
 uint16_t ICLStepper::read_motion_status() {
     uint16_t status;
     if (modbus_read_registers(ctx_, 0x1003, 1, &status) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to read motion status: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to read motion status: "
                   << modbus_strerror(errno) << std::endl;
         return 0;
     }
@@ -208,7 +208,7 @@ uint16_t ICLStepper::read_motion_status() {
 0x6012: Homing decceleration ms/1000rpm
 */
 int ICLStepper::home(double home_switch_position, double position_after_homing_radians, bool clockwise, double radians_per_second) {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     int32_t position_after_homing = static_cast<int32_t>( (position_after_homing_radians / (2.0 * M_PI)) * pulses_per_revolution_ * gear_ratio_ );
@@ -237,7 +237,7 @@ int ICLStepper::home(double home_switch_position, double position_after_homing_r
         2000      // Homing deceleration
     };
     if (modbus_write_registers(ctx_, 0x600A, sizeof(homing_params) / sizeof(homing_params[0]), homing_params) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to configure homing parameters: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to configure homing parameters: "
                     << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -245,7 +245,7 @@ int ICLStepper::home(double home_switch_position, double position_after_homing_r
 
     // Trigger homing
     if (modbus_write_register(ctx_, 0x6002, 0x0020) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to trigger homing: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to trigger homing: "
                     << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -255,12 +255,12 @@ int ICLStepper::home(double home_switch_position, double position_after_homing_r
 }
 
 int ICLStepper::configure_io_for_homing() {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // Configure digital input 2 as home switch
     if (modbus_write_register(ctx_, 0x0147, 0x0027) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to configure digital input for homing: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to configure digital input for homing: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -269,7 +269,7 @@ int ICLStepper::configure_io_for_homing() {
     // Not sure if needed:
     // save IO mapping to EEPROM (then power-cycle once)
     if (modbus_write_register(ctx_, 0x1801, 0x2244) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to save IO mapping to EEPROM: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to save IO mapping to EEPROM: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
@@ -278,12 +278,12 @@ int ICLStepper::configure_io_for_homing() {
 }
 
 int ICLStepper::set_as_home() {
-    modbus_set_worker(ctx_, worker_id_);
+    modbus_set_slave(ctx_, slave_id_);
     usleep(delay_us_);
 
     // Set current position as home (zero) position
     if (modbus_write_register(ctx_, 0x6002, 0x21) == -1) {
-        std::cerr << "[Worker " << worker_id_ << "] Failed to set current position as home: "
+        std::cerr << "[Slave " << slave_id_ << "] Failed to set current position as home: "
                   << modbus_strerror(errno) << std::endl;
         return -1;
     }
