@@ -56,7 +56,7 @@ std::map<Button, double> BUTTON_DEFAULTS;
 
 // To change controls or setup a new controller, all you should to do is change the above enums and the follow 2
 // functions
-/** \brief // This converts a joystick axes and buttons array to a TwistStamped or JointJog message
+/** \brief // This converts  a joystick axes and buttons array to a TwistStamped or JointJog message
  * @param axes The vector of continuous controller joystick axes
  * @param buttons The vector of discrete controller button values
  * @param twist A TwistStamped message to update in prep for publishing
@@ -72,8 +72,8 @@ bool convertJoyToCmd(const std::vector<float>& axes, const std::vector<int>& but
   bool dpadPressed = axes[D_PAD_X] || axes[D_PAD_Y];
   bool abxyPressed = buttons[A] || buttons[B] || buttons[X] || buttons[Y];
   bool lrPressed = buttons[LEFT_STICK_CLICK] || buttons[RIGHT_STICK_CLICK];
-  if (dpadPressed || abxyPressed || lrPressed)
-  {
+  
+  if (dpadPressed || abxyPressed || lrPressed) {
     // Map the D_PAD to the proximal joints
     joint->joint_names.push_back("Revolute1");
     joint->velocities.push_back(axes[D_PAD_X]);
