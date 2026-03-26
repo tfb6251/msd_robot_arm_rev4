@@ -72,7 +72,7 @@ bool convertJoyToCmd(const std::vector<float>& axes, const std::vector<int>& but
   bool dpadPressed = axes[D_PAD_X] || axes[D_PAD_Y];
   bool abxyPressed = buttons[A] || buttons[B] || buttons[X] || buttons[Y];
   bool lrPressed = buttons[LEFT_STICK_CLICK] || buttons[RIGHT_STICK_CLICK];
-  
+
   if (dpadPressed || abxyPressed || lrPressed) {
     // Map the D_PAD to the proximal joints
     joint->joint_names.push_back("Revolute1");
@@ -87,8 +87,9 @@ bool convertJoyToCmd(const std::vector<float>& axes, const std::vector<int>& but
     joint->joint_names.push_back("Revolute5");
     joint->velocities.push_back(buttons[A] - buttons[B]);
     joint->joint_names.push_back("Revolute6");
-    joint->velocities.push_back(buttons[X] - buttons[Y]);
+    joint->velocities.push_back(buttons[X] - buttons[Y]); 
 
+    std::cout << "Ping Ping Ping\n\r";  
 
     return false;
   }

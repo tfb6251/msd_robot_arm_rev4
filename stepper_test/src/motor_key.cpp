@@ -53,7 +53,7 @@ Press 'q' or Esc to quit.
     bool clockwise = true;
     modbus_t* ctx = modbus_new_rtu("/dev/ttyUSB0", 115200, 'N', 8, 1);
     if (ctx == nullptr) {
-        std::cerr << "Unable to create the libmodbus context" << std::endl;
+        std::cerr << "Unable to create the context" << std::endl;
         return -1;
     }
     modbus_set_response_timeout(ctx, 1, 0);
@@ -97,23 +97,31 @@ Press 'q' or Esc to quit.
                             jogging = not jogging;
                             clockwise = true;
                             i += 2; // Skip the rest of the escape sequence
+                            
+
                         } else if (buf[i + 2] == 'D') { // Left arrow
                             std::cout << "Left arrow pressed.\n";
                             jogging = not jogging;
                             clockwise = false;
                             i += 2; // Skip the rest of the escape sequence
+
+
                         } else if (buf[i + 2] == 'A') { // Up arrow
                             std::cout << "Up arrow pressed.\n";
                             target_velocity += 100;
                             stepper.set_jog_velocity(target_velocity);
                             std::cout << "Increased target velocity to " << target_velocity << "\n";
                             i += 2; // Skip the rest of the escape sequence
+
+
                         } else if (buf[i + 2] == 'B') { // Down arrow
                             std::cout << "Down arrow pressed.\n";
                             target_velocity = std::max(0, target_velocity - 100);
                             stepper.set_jog_velocity(target_velocity);
                             std::cout << "Decreased target velocity to " << target_velocity << "\n";
                             i += 2; // Skip the rest of the escape sequence
+
+
                         }
                     }
                 }
@@ -125,7 +133,7 @@ Press 'q' or Esc to quit.
                 }
 
                 else if (ch == 'z' || ch == 'x' || ch == 'c' || ch == 'v' || ch == 'b' || ch == 'n' || ch == 'm') {
-                    std::cout << "Key '" << static_cast<char>(ch) << "' pressed, move to position.\n";
+                    std::cout << "Key '" << static_cast<char>(ch) << "' pressed, moving to position.\n";
                     if (ch == 'v') {
                         stepper.set_position_radians(0, 3.14);
                     } else if (ch == 'b') {
@@ -171,6 +179,101 @@ Press 'q' or Esc to quit.
                     std::cout << "Quit.\n";
                     return 0;
                 }
+
+                else if (ch == ',') {
+                    float x, y, z, phi; //User Input x,y,z coordinates to go to
+                    float fr, fz, r, d, alpha, beta; //intermediate varibles for ease of use
+                    float thetaB, theta1, theta2, thetaE;//angles
+                    float lenAB, lenCD, lenEF, lenT;//arm base lengths
+
+                    //target point hardcoded for now
+                    x = 0;
+                    y = 10;
+                    z = 10;
+
+                    //phi is the an
+                    phi = 0;
+
+                    //arm segement lengths (cm)
+                    lenAB = 31;
+                    lenCD = 37;
+                    lenEF = 15;
+                    lenT = lenAB + lenCD + std::max(lenEF*cos(phi),lenEF*sin(phi));
+
+                    //Calculate end effector base target and angle
+                    r = sqrt(x*x + y*y);
+                    fr = r + z*sin(phi);
+                    fz = z + z*sin(phi);
+                    d = sqrt(fr*fr + fz*fz);
+                    
+                    if(d > lenT) {
+                    std::cout << "\nError Position Out Of Reach\n";
+                        break;
+                    }
+
+
+                    alpha = atan2(fz, fr);
+                    beta = acos((-(d*d)+(lenAB*lenAB)+(lenCD*lenCD))/(2*lenAB*lenCD));
+                    
+                    thetaB = atan2(y, x);
+                    theta1 = alpha + beta;
+
+                    theta2 = 3.14159 + acos((-(lenCD*lenCD)+(lenAB*lenAB)+(d*d))/(2*lenAB*d));
+                    if(theta2 >= 3.14159 || theta2 <= -3.14159) { 
+                        theta2 = -(2*3.14159-theta2);
+                    }
+
+
+
+                    thetaE = phi - (theta1 + theta2);
+                    if(thetaE >= 3.14159 || thetaE <= -3.14159) { 
+                        thetaE = -(2*3.14159-thetaE);
+                    }
+
+
+                    // stepper.set_slave_id(1);
+                    // stepper.set_slave_id(2);
+                    // stepper.set_slave_id(3);
+                    // stepper.set_slave_id(5);
+
+                    // stepper.set_position_radians(thetaB);
+                    // stepper.set_position_radians(theta1);
+                    // stepper.set_position_radians(theta2);
+                    // stepper.set_position_radians(thetaE);
+
+                    std::cout << "\n========== ROBOT ARM DEBUG ==========\n";
+
+                    std::cout << "\n--- Target Position ---\n";
+                    std::cout << "x:   " << x << " cm\n";
+                    std::cout << "y:   " << y << " cm\n";
+                    std::cout << "z:   " << z << " cm\n";
+                    std::cout << "phi: " << phi << "\n";
+
+
+                    std::cout << "\n--- Geometry ---\n";
+                    std::cout << "r  (sqrt(x^2,y^2)): " << r  << "\n";
+                    std::cout << "rx (adjusted x):    " << fr << "\n";
+                    std::cout << "rz (adjusted z):    " << fz << "\n";
+                    std::cout << "d  (distance):      " << d  << "\n";
+                    std::cout << "alpha:              " << alpha << "\n";
+                    std::cout << "beta:               " << beta << "\n";
+
+                    std::cout << "\n--- Joint Angles (radians) ---\n";
+                    std::cout << "thetaB (base):        " << thetaB << "\n";
+                    std::cout << "theta1:               " << theta1 << "\n";
+                    std::cout << "theta2:               " << theta2 << "\n";
+                    std::cout << "thetaE (end eff):     " << thetaE << "\n";
+
+                    std::cout << "\n--- Arm Lengths ---\n";
+                    std::cout << "lenAB:                " << lenAB << " cm\n";
+                    std::cout << "lenCD:                " << lenCD << " cm\n";
+                    std::cout << "lenEF:                " << lenEF << " cm\n";
+
+                    std::cout << "\n=====================================\n";
+                    
+                    
+                }
+                
             }
         }
         if (jogging){
